@@ -1,0 +1,10 @@
+{
+  "projectId": "echiai",
+  "appId": "1:212810498840:web:22ace42aab2efed61fd46d",
+  "apiKey": "AIzaSyBWqzH0jccXBVaFjcBbcmT5aN6Us_dMeQY",
+  "authDomain": "echiai.firebaseapp.com",
+  "firestoreDatabaseId": "ai-studio-3c14d542-02c9-47ad-a717-5c181029df9e",
+  "storageBucket": "echiai.firebasestorage.app",
+  "messagingSenderId": "212810498840",
+  "measurementId": ""
+}

@@ -1,0 +1,5 @@
+{
+  "name": "Synapse",
+  "description": "Your Clinical Health Companion - A sophisticated health assessment and tracking app.",
+  "requestFramePermissions": ["microphone"]
+}

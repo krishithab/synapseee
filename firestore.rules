@@ -1,0 +1,132 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: {userId} (matches auth.uid)
+    // Fields:
+    //   - uid: string (required)
+    //   - email: string (required, email format)
+    //   - displayName: string (optional)
+    //   - photoURL: string (optional, uri format)
+    //   - language: string (enum: English, Telugu, Hindi)
+    //   - fontSize: string (enum: small, medium, large)
+    //   - createdAt: timestamp (required)
+    //
+    // Collection: assessments
+    // Document ID: {assessmentId}
+    // Fields:
+    //   - uid: string (required, matches owner)
+    //   - selectedBodyPart: string (required)
+    //   - symptoms: list (strings)
+    //   - painLevel: number (1-10)
+    //   - duration: string
+    //   - mobility: map { stiffness: string, support: string }
+    //   - medicationAdherence: string
+    //   - specialist: string
+    //   - createdAt: timestamp (required)
+    //
+    // Collection: appointments
+    // Document ID: {appointmentId}
+    // Fields:
+    //   - uid: string (required, matches owner)
+    //   - specialist: string (required)
+    //   - status: string (enum: pending, confirmed, cancelled)
+    //   - createdAt: timestamp (required)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.uid;
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidTimestamp(ts) {
+      return ts is timestamp;
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email', 'createdAt']) &&
+             data.uid == request.auth.uid &&
+             isValidEmail(data.email) &&
+             isValidTimestamp(data.createdAt) &&
+             (!('language' in data) || data.language in ['English', 'Telugu', 'Hindi']) &&
+             (!('fontSize' in data) || data.fontSize in ['small', 'medium', 'large']);
+    }
+
+    function isValidAssessment(data) {
+      return data.keys().hasAll(['uid', 'selectedBodyPart', 'createdAt']) &&
+             data.uid == request.auth.uid &&
+             data.selectedBodyPart is string &&
+             data.selectedBodyPart.size() < 100 &&
+             isValidTimestamp(data.createdAt) &&
+             (!('painLevel' in data) || (data.painLevel is number && data.painLevel >= 0 && data.painLevel <= 10));
+    }
+
+    function isValidAppointment(data) {
+      return data.keys().hasAll(['uid', 'specialist', 'status', 'createdAt']) &&
+             data.uid == request.auth.uid &&
+             data.specialist is string &&
+             data.status in ['pending', 'confirmed', 'cancelled'] &&
+             isValidTimestamp(data.createdAt);
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(request.resource.data);
+      allow update: if isOwner(userId) && isValidUser(request.resource.data) && 
+                    request.resource.data.uid == resource.data.uid &&
+                    request.resource.data.createdAt == resource.data.createdAt;
+    }
+
+    match /assessments/{assessmentId} {
+      allow read: if isDocOwner();
+      allow create: if isAuthenticated() && isValidAssessment(request.resource.data);
+      allow update: if isDocOwner() && isValidAssessment(request.resource.data) &&
+                    request.resource.data.uid == resource.data.uid &&
+                    request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if isDocOwner();
+    }
+
+    match /appointments/{appointmentId} {
+      allow read: if isDocOwner();
+      allow create: if isAuthenticated() && isValidAppointment(request.resource.data);
+      allow update: if isDocOwner() && isValidAppointment(request.resource.data) &&
+                    request.resource.data.uid == resource.data.uid &&
+                    request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if isDocOwner();
+    }
+
+    // Default deny
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Stores user profile information and preferences.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Unique identifier for the user." },
+        "email": { "type": "string", "format": "email", "description": "User's email address." },
+        "displayName": { "type": "string", "description": "User's full name." },
+        "photoURL": { "type": "string", "format": "uri", "description": "URL to the user's profile picture." },
+        "language": { "type": "string", "enum": ["English", "Telugu", "Hindi"], "description": "User's preferred language." },
+        "fontSize": { "type": "string", "enum": ["small", "medium", "large"], "description": "User's preferred font size." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the user profile was created." }
+      },
+      "required": ["uid", "email", "createdAt"]
+    },
+    "Assessment": {
+      "title": "Health Assessment",
+      "description": "Stores a single health assessment record.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "UID of the user who performed the assessment." },
+        "selectedBodyPart": { "type": "string" },
+        "symptoms": { "type": "array", "items": { "type": "string" } },
+        "painLevel": { "type": "number" },
+        "duration": { "type": "string" },
+        "mobility": {
+          "type": "object",
+          "properties": {
+            "stiffness": { "type": "string" },
+            "support": { "type": "string" }
+          }
+        },
+        "medicationAdherence": { "type": "string" },
+        "specialist": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "selectedBodyPart", "createdAt"]
+    },
+    "Appointment": {
+      "title": "Medical Appointment",
+      "description": "Stores information about a booked appointment.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "UID of the patient." },
+        "specialist": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "confirmed", "cancelled"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "specialist", "status", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile documents."
+    },
+    "/assessments/{assessmentId}": {
+      "schema": "Assessment",
+      "description": "Health assessment records."
+    },
+    "/appointments/{appointmentId}": {
+      "schema": "Appointment",
+      "description": "Appointment booking records."
+    }
+  }
+}
