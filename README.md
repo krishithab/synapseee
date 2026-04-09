@@ -1,6 +1,4 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+
 
 Project Documentation: The Sanctuary
 The Sanctuary is a clinical-grade health companion application designed to empower patients by helping them identify symptoms, prepare for medical consultations, and connect with the right specialists. It bridges the gap between initial discomfort and professional diagnosis through an intuitive, AI-driven triage experience.
